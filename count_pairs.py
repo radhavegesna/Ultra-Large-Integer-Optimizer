@@ -1,36 +1,14 @@
 # Modify this file to implement the count_pairs_file function
 # using ultra-large integers in C/C++.
+
 def read_file(filename: str) -> tuple[list[int], int]:
-
-
-    from ctypes import CDLL
-
-
-
-# Load the shared library
-    lib = CDLL('./file_reader.so')
-
-# Define the structure to hold the file data
-    class FileData:
-      def _init_(self, target, numbers):
-        self.target = target
-        self.numbers = numbers
-
-# Define the function to read the file
-    # Call the C function
-    file_data = lib.read_file(filename.encode('utf-8'))
-
-    # Extract the target
-    target = file_data.target
-
-    # Extract the size of the numbers
-    size = file_data.size
-
-    # Create a Python list from the C array
-    numbers = [file_data.numbers[i] for i in range(size)]
-
-    # Return the target and numbers
-    return FileData(target, numbers)
+    with open(filename) as file:
+        # First line is the target
+        target = int(file.readline())
+        # Second line is the number of integers
+        n = int(file.readline())
+        # Read the n integers and return them as a list
+        return ([int(file.readline()) for _ in range(n)], target)
 
 
 def count_pairs(data: list[int], target: int) -> int:
@@ -39,18 +17,12 @@ def count_pairs(data: list[int], target: int) -> int:
     data[i] - data[j] = target.
     Time complexity: Naive O(n^2).
     """
-    from ctypes import CDLL, c_int, POINTER
-
-    # Load the shared library
-    lib = CDLL('./file_reader.so')
-    
-    # Prepare the data for C function
+    result = 0
     n = len(data)
-    c_data = (c_int * n)(*data)
-    
-    # Call the C function
-    result = lib.count_pairs(c_data, c_int(n), c_int(target))
-    
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            if data[i] - data[j] == target:
+                result += 1
     return result
 
 
@@ -63,14 +35,7 @@ def test_count_pairs():
     assert count_pairs([10**20 + 2, 10**20 + 1, 10**20], 1) == 2
     print("count_pairs.py: All tests passed")
 
+
 def count_pairs_file(filename: str) -> int:
-    from ctypes import CDLL, c_int, c_char_p
-
-    # Load the shared library
-    lib = CDLL('./file_reader.so')
-
-
-
-
-    # Call the C function
-    return lib.count_pairs_file(filename.encode('utf-8'))
+    data, target = read_file(filename)
+    return count_pairs(data, target)
